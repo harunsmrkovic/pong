@@ -1,5 +1,7 @@
 var cursorPos = [];
 var hostname = "http://178.62.205.41:8080";
+
+var socket = io.connect(hostname);
 (function(){
 
 	var pong = {};
@@ -36,6 +38,18 @@ var hostname = "http://178.62.205.41:8080";
 		position: -1
 	};
 
+	// ball configuration
+	pong.ball = {
+		dom: document.getElementById('ball'),
+		width: 30,
+		height: 30,
+		speed: 5,
+		x: (pong.field.width / 2) - 15,
+		y: (pong.field.height / 2) - 15,
+		angle: 3.2
+	};
+
+	// killswitch for not overloading the server (resets every 8ms)
 	pong.send = true;
 
 	pong.moveOwnPaddle = function(paddleNum){
@@ -60,9 +74,53 @@ var hostname = "http://178.62.205.41:8080";
 		pong.send = true;
 	}, 8);
 
+	pong.bounceBall = function(origin){
+		console.log(origin);
+		if(origin == 'wall') {
+			pong.ball.angle = -pong.ball.angle;
+		}
+
+	};
+
+	pong.moveBall = function(){
+		var newX,
+				newY;
+
+		// determine new position
+		newX = pong.ball.x + pong.ball.speed * Math.cos(pong.ball.angle);
+		newY = pong.ball.y + pong.ball.speed * Math.sin(pong.ball.angle) * -1;
+
+		if(newX > pong.paddle.defaults.width && newX < pong.field.width - pong.ball.width - pong.paddle.defaults.width && newY > 0 && newY < pong.field.height - pong.ball.height){
+			pong.ball.x = newX;
+			pong.ball.y = newY;
+		} else if(newX > 0 && newX < pong.field.width && (newX < pong.paddle.defaults.width || newX > pong.field.width - pong.paddle.defaults.width)){
+			var thepaddle = pong.paddle.paddles[(newX < pong.field.width/2) ? 0 : 1];
+			//console.log(newX, thepaddle.top, pong.paddle.defaults.height, (thepaddle.top + pong.paddle.defaults.height));
+			if(newY >= thepaddle.top && newY <= thepaddle.top + pong.paddle.defaults.height){
+				// pong.bounceBall('wall');
+			}
+			else {
+				pong.ball.x = newX;
+				pong.ball.y = newY;
+			}
+		} else {
+			if(newY - pong.ball.height <= 0 || newY + pong.ball.height >= pong.field.height){
+				pong.bounceBall('wall');
+			}
+			else {
+				console.warn('GUBIS PICKO!!');
+			}
+		}
+	};
+
 	pong.render = function(){
+		// paddles rendering
 		pong.paddle.paddles[0].dom.style.marginTop = pong.paddle.paddles[0].top;
 		pong.paddle.paddles[1].dom.style.marginTop = pong.paddle.paddles[1].top;
+
+		// ball rendering
+		pong.ball.dom.style.top = pong.ball.y;
+		pong.ball.dom.style.left = pong.ball.x;
 	};
 
 	pong.startGame = function(){
@@ -87,6 +145,10 @@ var hostname = "http://178.62.205.41:8080";
 		setInterval(function(){
 			pong.render();
 		}, 16);
+
+		setInterval(function(){
+			pong.moveBall();
+		}, 10);
 	}
 
 	pong.stopGame = function(){
@@ -95,14 +157,15 @@ var hostname = "http://178.62.205.41:8080";
 
 })();
 
-var socket = io.connect(hostname);
-socket.on('game', function(data){ 
-	if(data == 1) Pong.startGame();
-	else if(data == 0) Pong.stopGame();
-});
+Pong.startGame();
+
+// socket.on('game', function(data){ 
+// 	if(data == 1) Pong.startGame();
+// 	else if(data == 0) Pong.stopGame();
+// });
 
 var paddle = -1;
-
+paddle = 0;
 
 socket.on('sides', function(returned){
 	var val = returned;
