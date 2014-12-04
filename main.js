@@ -1,5 +1,5 @@
 var cursorPos = [];
-var hostname = "https://pongpong.firebaseio.com";
+var hostname = "http://178.62.205.41:8080";
 (function(){
 
 	var pong = {};
@@ -50,8 +50,8 @@ var hostname = "https://pongpong.firebaseio.com";
 
 			pong.paddle.paddles[paddleNum].top = y;
 			// if(pong.send){
-				console.log('sending to firebase', y);
-				firebase.child('paddles').child('paddle'+pong.paddle.position).set(y);
+				console.log('sending to vedad', y);
+				socket.emit('paddle'+pong.paddle.position, y);
 				pong.send = false;
 			// }
 		}
@@ -78,75 +78,62 @@ var hostname = "https://pongpong.firebaseio.com";
 
 		pong.gameOn = true;
 
+		// Start following the other player
+		var enemy = Math.abs(1-pong.paddle.position);
+		socket.on('paddle'+enemy, function(data){
+			pong.paddle.paddles[enemy].top = data;
+		});
+
+
 		setInterval(function(){
 			pong.render();
 		}, 16);
 	}
 
+	pong.stopGame = function(){
+		alert('Game stopped');
+	}
+
 })();
 
-//Pong.startGame();
+var socket = io.connect(hostname);
+socket.on('game', function(data){ 
+	if(data == 1) Pong.startGame();
+	else if(data == 0) Pong.stopGame();
+});
 
-var firebase = new Firebase(hostname);
 var paddle = -1;
 
-firebase.child('sides').on('value', function(returned){
-	var val = returned.val();
+
+socket.on('sides', function(returned){
+	var val = returned;
+	console.log(val);
 	
 	if(!val){
 		// default setting
 		determinePaddle(0);
-		firebase.set({
-			sides: {
-				'left': true,
-				'right': false
-			}
-		});
 	}
 	else {
-		if(!val.left){
+		if(val[0] == 0 && paddle < 0){
 			determinePaddle(0);
-			firebase.set({
-				sides: {
-					'left': true,
-					'right': false
-				}
-			});
 		}
 
 		// I AM THE RIGHT PLAYER AND HAVE THE POWER, hence I HAVE THE POWEEEEEER
-		if(!val.right && val.left && paddle < 0){
+		if(val[1] == 0 && paddle < 0){
 			determinePaddle(1);
-			firebase.child('sides').set(
-				{
-					'left': true,
-					'right': true
-				}
-			);
 		}
 
 		Pong.paddle.yourPaddle = paddle;
 
-		if(val.right && val.left && paddle < 0){
+		if(val[0] == 1 && val[1] == 1 && paddle < 0){
 			alert('No more space to play :(');
-		} else if(val.left && val.right && !Pong.gameOn) {
-			Pong.startGame();
 		}
-	}
-});
-
-firebase.child('paddles').on('value', function(returned){
-	returned = returned.val();
-	if(returned){
-		var opposite = Math.abs(1-Pong.paddle.position);
-		Pong.paddle.paddles[opposite].top = returned['paddle'+opposite];
 	}
 });
 
 function determinePaddle(tempPaddle){
 	paddle = tempPaddle;
-	// disconnect handling
-	firebase.child('sides').child((tempPaddle === 0) ? 'left' : 'right').onDisconnect().set(false);
+	socket.emit('setSide', paddle);
 	Pong.paddle.position = paddle;
 };
 
