@@ -1,3 +1,37 @@
 body {
-	background: #8e44ad;
+	background: #7f8c8d;
+	overflow: hidden;
+	cursor: crosshair;
+}
+
+#field {
+	background: #95a5a6;
+	margin-left: auto;
+	margin-right: auto;
+	position: relative;
+}
+
+.divider {
+	width: 2px;
+	height: 100%;
+	position: absolute;
+	left: 50%;
+	top: 0;
+	margin-left: -1px;
+	background: #bdc3c7;
+}
+
+.paddle {
+	position: absolute;
+	background: #e74c3c;
+	width: 20px;
+	height: 150px;
+}
+
+#paddle-1 {
+	left: 0;
+}
+
+#paddle-2 {
+	right: 0;
 }
