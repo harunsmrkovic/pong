@@ -75,18 +75,23 @@ var socket = io.connect(hostname);
 		pong.send = true;
 	}, 8);
 
-	pong.bounceBall = function(origin, paddle){
-		if(typeof paddle === 'undefined') paddle = false;
+	pong.bounceBall = function(origin, paddleId){
+		if(typeof paddleId === 'undefined') paddle = false;
+	  else {
+	  	paddle = pong.paddle.paddles[paddleId];
+	  }
 
 		switch(origin){
 			case 'wall':
 				pong.ball.angle = -pong.ball.angle;
 				break;
 			case 'paddle':
-				var relativeIntersectY = (paddle.top+(pong.paddle.defaults.height/2)) - (pong.ball.y + pong.ball.height / 2);
+			  var mtop = (paddleId == 0) ? 0 : paddle.top;
+				var relativeIntersectY = (paddle.top+(pong.paddle.defaults.height/2)) - (pong.ball.y + pong.ball.height / 2) - mtop;
 				var normalizedRelativeIntersectionY = (relativeIntersectY/(pong.paddle.defaults.height/2));
 				console.log(relativeIntersectY, normalizedRelativeIntersectionY, (normalizedRelativeIntersectionY*pong.ball.maxBounceAngle));
 				pong.ball.angle = normalizedRelativeIntersectionY * pong.ball.maxBounceAngle;
+				//console.log(pong.ball.angle);
 				break;
 		}
 
@@ -100,29 +105,54 @@ var socket = io.connect(hostname);
 		newX = pong.ball.x + pong.ball.speed * Math.cos(pong.ball.angle);
 		newY = pong.ball.y + pong.ball.speed * Math.sin(pong.ball.angle) * -1;
 
-
-		console.log(newX);
-		if(newX > pong.paddle.defaults.width && newX < pong.field.width - pong.ball.width && newY > 0 && newY < pong.field.height - pong.ball.height){
-			pong.ball.x = newX;
-			pong.ball.y = newY;
-		} else if( (newX > 0 && newX <= pong.paddle.defaults.width) || (newX >= pong.field.width - pong.paddle.defaults.width) ){
-			var thepaddle = pong.paddle.paddles[(newX < pong.field.width/2) ? 0 : 1];
-			//console.log(newX, thepaddle.top, pong.paddle.defaults.height, (thepaddle.top + pong.paddle.defaults.height));
-			if(newY >= thepaddle.top && newY <= thepaddle.top + pong.paddle.defaults.height){
-				pong.bounceBall('paddle', thepaddle);
-			}
-			else {
+		if( newY <= 0 || newY + pong.ball.height >= pong.field.height ) {
+			pong.bounceBall('wall');
+		} else {
+			if ( newX <= pong.paddle.defaults.width || newX >= pong.field.width - pong.paddle.defaults.width - pong.ball.width) {
+				var thePaddle = pong.paddle.paddles[(newX < pong.field.width/2) ? 0 : 1];
+				if (thePaddle.top <= newY && newY <= thePaddle.top+pong.paddle.defaults.height) {
+					pong.bounceBall('paddle', (newX < pong.field.width/2) ? 0 : 1);
+					console.log("IDI ODBIJ ");
+				} else {
+					if(newX+pong.ball.width < pong.field.width && newX > 0) {
+						pong.ball.x = newX;
+						pong.ball.y = newY;
+					} else {
+						console.warn('GUBIS PICKOOO');
+					}
+				}
+			} else {
 				pong.ball.x = newX;
 				pong.ball.y = newY;
-			}
-		} else {
-			if(newY - pong.ball.height <= 0 || newY + pong.ball.height >= pong.field.height){
-				pong.bounceBall('wall');
-			}
-			else {
-				console.warn('GUBIS PICKO!!');
-			}
+			}	
 		}
+
+		// if(newX > pong.paddle.defaults.width && newX < pong.field.width - pong.paddle.defaults.width - pong.ball.width && newY > 0 && newY < pong.field.height - pong.ball.height){
+		// 	pong.ball.x = newX;
+		// 	pong.ball.y = newY;
+		// } else if( (newX > 0 && newX <= pong.paddle.defaults.width) || (newX >= pong.field.width - pong.paddle.defaults.width) ){
+		// 	var paddleId = (newX < pong.field.width/2) ? 0 : 1;
+		// 	var thePaddle = pong.paddle.paddles[paddleId];
+		// 	//console.log(newX, thePaddle.top, pong.paddle.defaults.height, (thePaddle.top + pong.paddle.defaults.height));
+		// 	if(newY >= thePaddle.top && newY <= thePaddle.top + pong.paddle.defaults.height){
+		// 		pong.bounceBall('paddle', paddleId);
+		// 	}
+		// 	else {
+		// 		pong.ball.x = newX;
+		// 		pong.ball.y = newY;
+		// 	}
+		// } else {
+
+		// 	if(newY - pong.ball.height <= 0 || newY + pong.ball.height >= pong.field.height){
+		// 		pong.bounceBall('wall');
+		// 	}
+		// 	else {
+
+		// 		pong.ball.x = newX;
+		// 		pong.ball.y = newY;
+		// 		//console.warn('GUBIS PICKO!!');
+		// 	}
+		// }
 	};
 
 	pong.render = function(){
