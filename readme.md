@@ -1,4 +1,4 @@
-<h2>PongPong</h2>
+<h3>PongPong</h3>
 <hr>
 Real-time browser game developed by @harunsmrkovic and @vedadsose.
 <br><br>
