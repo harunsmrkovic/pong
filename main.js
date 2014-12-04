@@ -169,15 +169,15 @@ var socket = io.connect(hostname);
 
 })();
 
-Pong.startGame();
+// Pong.startGame();
 
-// socket.on('game', function(data){ 
-// 	if(data == 1) Pong.startGame();
-// 	else if(data == 0) Pong.stopGame();
-// });
+socket.on('game', function(data){ 
+	if(data == 1) Pong.startGame();
+	else if(data == 0) Pong.stopGame();
+});
 
 var paddle = -1;
-paddle = 0;
+// paddle = 0;
 
 socket.on('sides', function(returned){
 	var val = returned;
