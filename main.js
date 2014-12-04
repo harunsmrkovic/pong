@@ -86,8 +86,9 @@ var socket = io.connect(hostname);
 				pong.ball.angle = -pong.ball.angle;
 				break;
 			case 'paddle':
-			  var mtop = (paddleId == 0) ? 0 : paddle.top;
-				var relativeIntersectY = (paddle.top+(pong.paddle.defaults.height/2)) - (pong.ball.y + pong.ball.height / 2) - mtop;
+			  var intersectY = (paddle.top+pong.paddle.defaults.height/2 - pong.ball.y) * -1;
+			  console.log(intersectY);
+				var relativeIntersectY = (paddle.top+(pong.paddle.defaults.height/2)) - intersectY;
 				var normalizedRelativeIntersectionY = (relativeIntersectY/(pong.paddle.defaults.height/2));
 				console.log(relativeIntersectY, normalizedRelativeIntersectionY, (normalizedRelativeIntersectionY*pong.ball.maxBounceAngle));
 				pong.ball.angle = normalizedRelativeIntersectionY * pong.ball.maxBounceAngle;
