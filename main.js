@@ -49,11 +49,10 @@ var hostname = "http://178.62.205.41:8080";
 			y = (y > max_y) ? max_y : y;
 
 			pong.paddle.paddles[paddleNum].top = y;
-			// if(pong.send){
-				console.log('sending to vedad', y);
+			if(pong.send){
 				socket.emit('paddle'+pong.paddle.position, y);
 				pong.send = false;
-			// }
+			}
 		}
 	};
 
