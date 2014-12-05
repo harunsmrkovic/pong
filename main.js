@@ -87,10 +87,10 @@ var socket = io.connect(hostname);
 				break;
 			case 'paddle':
 			  var intersectY = (paddle.top+pong.paddle.defaults.height/2 - pong.ball.y) * -1;
-			  console.log(intersectY);
+			  // console.log(intersectY);
 				var relativeIntersectY = (paddle.top+(pong.paddle.defaults.height/2)) - intersectY;
 				var normalizedRelativeIntersectionY = (relativeIntersectY/(pong.paddle.defaults.height/2));
-				console.log(relativeIntersectY, normalizedRelativeIntersectionY, (normalizedRelativeIntersectionY*pong.ball.maxBounceAngle));
+				// console.log(relativeIntersectY, normalizedRelativeIntersectionY, (normalizedRelativeIntersectionY*pong.ball.maxBounceAngle));
 				pong.ball.angle = normalizedRelativeIntersectionY * pong.ball.maxBounceAngle;
 				//console.log(pong.ball.angle);
 				break;
@@ -113,13 +113,12 @@ var socket = io.connect(hostname);
 				var thePaddle = pong.paddle.paddles[(newX < pong.field.width/2) ? 0 : 1];
 				if (thePaddle.top <= newY && newY <= thePaddle.top+pong.paddle.defaults.height) {
 					pong.bounceBall('paddle', (newX < pong.field.width/2) ? 0 : 1);
-					console.log("IDI ODBIJ ");
 				} else {
 					if(newX+pong.ball.width < pong.field.width && newX > 0) {
 						pong.ball.x = newX;
 						pong.ball.y = newY;
 					} else {
-						console.warn('GUBIS PICKOOO');
+						pong.stopGame();
 					}
 				}
 			} else {
@@ -185,17 +184,20 @@ var socket = io.connect(hostname);
 		});
 
 
-		setInterval(function(){
+		pong.renderingInt = setInterval(function(){
 			pong.render();
 		}, 16);
 
-		setInterval(function(){
+		pong.movingInt = setInterval(function(){
 			pong.moveBall();
 		}, 10);
 	}
 
 	pong.stopGame = function(){
-		alert('Game stopped');
+		pong.gameOn = false;
+		clearInterval(pong.renderingInt);
+		clearInterval(pong.movingInt);
+		alert('GAME OVER');
 	}
 
 })();
@@ -212,7 +214,6 @@ var paddle = -1;
 
 socket.on('sides', function(returned){
 	var val = returned;
-	console.log(val);
 	
 	if(!val){
 		// default setting
