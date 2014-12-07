@@ -46,7 +46,7 @@ var socket = io.connect(hostname);
 		speed: 5,
 		x: (pong.field.width / 2) - 15,
 		y: (pong.field.height / 2) - 15,
-		angle: 1,
+		angle: 3.2,
 		maxBounceAngle: 1.30899694
 	};
 
