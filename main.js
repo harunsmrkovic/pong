@@ -46,7 +46,7 @@ var socket = io.connect(hostname);
 		speed: 5,
 		x: (pong.field.width / 2) - 15,
 		y: (pong.field.height / 2) - 15,
-		angle: 3.2,
+		angle: 1,
 		maxBounceAngle: 1.30899694
 	};
 
@@ -86,12 +86,7 @@ var socket = io.connect(hostname);
 				pong.ball.angle = -pong.ball.angle;
 				break;
 			case 'paddle':
-			  // console.log(intersectY);
-				var relativeIntersectY = (paddle.top+(pong.paddle.defaults.height/2)) - pong.ball.y;
-				var normalizedRelativeIntersectionY = (relativeIntersectY/(pong.paddle.defaults.height/2));
-				pong.ball.angle = normalizedRelativeIntersectionY * pong.ball.maxBounceAngle;
-				
-
+				pong.ball.angle = 3.14159265 - pong.ball.angle;
 				break;
 		}
 
